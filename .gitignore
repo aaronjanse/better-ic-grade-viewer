@@ -1,6 +1,6 @@
 __pycache__/*
 *.pyc
 
-config.py
+./config.py
 
 .DS_Store

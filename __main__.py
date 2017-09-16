@@ -4,14 +4,9 @@
 
 import cookielib
 import mechanize
-
 import config
-
 from BeautifulSoup import BeautifulSoup
-
-from getpass import getpass
 from xml.dom import minidom
-
 import utils
 
 br = mechanize.Browser()
@@ -33,7 +28,9 @@ def setup():
     br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor(), max_time=1)
 
     # User-Agent
-    br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
+    br.addheaders = [
+        ('User-agent',
+         'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
 
 
 def login():
@@ -41,11 +38,10 @@ def login():
     address specified in the config
     """
     br.open(config.login_url)
-    br.select_form(nr=0) #select the first form
+    br.select_form(nr=0)  # select the first form
     br.form['username'] = config.username
-    br.form['password'] = getpass()
+    br.form['password'] = config.password
     br.submit()
-
 
 
 def get_base_url():
@@ -53,11 +49,10 @@ def get_base_url():
     return config.login_url.split("/campus")[0] + '/campus/'
 
 
-
-
 def get_schedule_page_url():
     """returns the url of the schedule page"""
-    school_data = br.open(get_base_url() + 'portal/portalOutlineWrapper.xsl?x=portal.PortalOutline&contentType=text/xml&lang=en')
+    school_data = br.open(get_base_url(
+    ) + 'portal/portalOutlineWrapper.xsl?x=portal.PortalOutline&contentType=text/xml&lang=en')
     dom = minidom.parse(school_data)
 
     node = dom.getElementsByTagName('Student')[0]
@@ -73,15 +68,18 @@ def get_schedule_page_url():
     structure_id = node.getAttribute('structureID')
     calendar_name = node.getAttribute('calendarName')
 
-    return utils.url_fix(get_base_url() + u"portal/portal.xsl?x=portal.PortalOutline&lang=en&personID={}&studentFirstName={}&lastName={}&firstName={}&schoolID={}&calendarID={}&structureID={}&calendarName={}&mode=schedule&x=portal.PortalSchedule&x=resource.PortalOptions".format(
-                                                                    person_id,
-                                                                    first_name,
-                                                                    last_name,
-                                                                    first_name,
-                                                                    school_id,
-                                                                    calendar_id,
-                                                                    structure_id,
-                                                                    calendar_name))
+    url = 'portal/portal.xsl?x=portal.PortalOutline&lang=en'
+    url += '&personID=' + person_id
+    url += '&studentFirstName=' + first_name
+    url += '&lastName=' + last_name
+    url += '&firstName=' + first_name
+    url += '&schoolID=' + school_id
+    url += '&calendarID=' + calendar_id
+    url += '&structureID=' + structure_id
+    url += '&calendarName=' + calendar_name
+    url += '&mode=schedule&x=portal.PortalSchedule&x=resource.PortalOptions'
+
+    return utils.url_fix(get_base_url() + url)
 
 
 def main():
@@ -98,8 +96,6 @@ def main():
                 print link.find('b').text
                 print link['href']
                 print ''
-
-    # print(links)
 
 
 if __name__ == '__main__':
