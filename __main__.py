@@ -12,6 +12,22 @@ import utils
 br = mechanize.Browser()
 
 
+def main():
+    setup()
+    login()
+    page = br.open(get_schedule_page_url())
+    soup = BeautifulSoup(page)
+
+    for cell in soup.findAll('td'):
+        if cell.has_key('class') and cell['class'] == 'scheduleBody':
+            link = cell.find('a')
+            if link is not None:
+                classname = ' '.join(link.find('b').text.split(' ')[1:])
+                print classname
+                print link['href']
+                print ''
+
+
 def setup():
     """general setup commands"""
     # Cookie Jar
@@ -80,22 +96,6 @@ def get_schedule_page_url():
     url += '&mode=schedule&x=portal.PortalSchedule&x=resource.PortalOptions'
 
     return utils.url_fix(get_base_url() + url)
-
-
-def main():
-    setup()
-    login()
-    # page = br.open(get_schedule_page_url())
-    page = br.open(get_schedule_page_url())
-    soup = BeautifulSoup(page)
-
-    for cell in soup.findAll('td'):
-        if cell.has_key('class') and cell['class'] == 'scheduleBody':
-            link = cell.find('a')
-            if link is not None:
-                print link.find('b').text
-                print link['href']
-                print ''
 
 
 if __name__ == '__main__':
