@@ -2,6 +2,10 @@
 
 # based on https://github.com/BenDoan/Infinite-Campus-Grade-Scraper
 
+from colorama import Fore, Back, Style
+from colorama import init
+init()
+
 import cookielib
 import mechanize
 import config
@@ -13,8 +17,112 @@ br = mechanize.Browser()
 
 
 def main():
+    print('setting up...')
     setup()
+    print('logging up...')
     login()
+
+    print('getting grades...')
+
+    headers = []
+    spacing_formats = []
+    color_formats = []
+
+    headers.append('percent')
+    spacing_formats.append('{: <7}')
+    color_formats.append('\033[0;32m' + '{}' + Style.RESET_ALL + Fore.RESET)
+
+    headers.append('assignment_name')
+    spacing_formats.append('{: <50}')
+    color_formats.append('\033[0;33m' + '{}' + Style.RESET_ALL + Fore.RESET)
+
+    headers.append('multiplier')
+    spacing_formats.append('{: <10}')
+    color_formats.append(
+        Style.DIM + '\033[2;34m' + '{}' + Style.RESET_ALL + Fore.RESET)
+
+    headers.append('pts_possible')
+    spacing_formats.append('{: <12}')
+    color_formats.append(Fore.MAGENTA + '{}' + Style.RESET_ALL + Fore.RESET)
+
+    headers.append('score')
+    spacing_formats.append('{: <5}')
+    color_formats.append(Fore.MAGENTA + '{}' + Style.RESET_ALL + Fore.RESET)
+
+    headers.append('due_date')
+    spacing_formats.append('{: <10}')
+    color_formats.append(Style.DIM + '{}' + Style.RESET_ALL + Fore.RESET)
+
+    headers.append('assigned_date')
+    spacing_formats.append('{: <13}')
+    color_formats.append(Style.DIM + '{}' + Style.RESET_ALL + Fore.RESET)
+
+    class_links = get_class_links()
+    for classname in class_links:
+        link = class_links[classname]
+        page = br.open(get_base_url() + link)
+        soup = BeautifulSoup(page)
+        info_boxes = soup.findAll('a', {'class': 'gridNotPartOfTermGPA'})
+
+        class_info = info_boxes[-1]
+        teacher = class_info['title'].split('Teacher: ')[1]
+
+        if class_info.find('span') is not None:
+            grade = class_info.find('span').text
+        else:
+            grade = None
+
+        print classname + ':'
+        print teacher
+        print grade
+        print ''
+
+        if grade is None:
+            continue
+
+        print(' '.join(spacing_formats).format(*headers))
+
+        rows = soup.findAll('tr', {'class': 'gridCellNormal'})
+        for row in rows:
+            if row.find('a') is not None:
+                columns = row.findAll('td')
+
+                # assignment_name = columns.pop(0).text
+                # due_date = columns.pop(0).text
+                # assigned_date = columns.pop(0).text
+                # multiplier = columns.pop(0).text
+                # pts_possible = columns.pop(0).text
+                # score = columns.pop(0).text
+                # percent = columns.pop(0).text
+
+                data_columns = {
+                    'assignment_name': columns.pop(0).text,
+                    'due_date': columns.pop(0).text,
+                    'assigned_date': columns.pop(0).text,
+                    'multiplier': columns.pop(0).text,
+                    'pts_possible': columns.pop(0).text,
+                    'score': columns.pop(0).text,
+                    'percent': columns.pop(0).text,
+                }
+
+                data_values = [data_columns[key] for key in headers]
+
+                for value, color_format, spacing_format in zip(data_values, spacing_formats, color_formats):
+                    print spacing_format.format(color_format.format(value)),
+
+                print ''
+
+                # print format_str.format(*data_values)
+
+                # print(row.text)
+
+        print ''
+        print ''
+        print ''
+
+
+def get_class_links():
+    output = {}
     page = br.open(get_schedule_page_url())
     soup = BeautifulSoup(page)
 
@@ -23,9 +131,9 @@ def main():
             link = cell.find('a')
             if link is not None:
                 classname = ' '.join(link.find('b').text.split(' ')[1:])
-                print classname
-                print link['href']
-                print ''
+                output[classname] = link['href']
+
+    return output
 
 
 def setup():
