@@ -2,18 +2,10 @@
 
 # based on https://github.com/BenDoan/Infinite-Campus-Grade-Scraper
 
-import cookielib
-import mechanize
-import config
-from BeautifulSoup import BeautifulSoup
-from xml.dom import minidom
-import utils
 import json
 from colorama import Fore, Style
 from colorama import init
 init()
-
-br = mechanize.Browser()
 
 
 def main():
