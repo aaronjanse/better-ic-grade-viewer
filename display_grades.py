@@ -28,7 +28,7 @@ def main():
     spacing_formats.append('{: <7}')
     color_formats.append('\033[0;32m' + '{}' + Style.RESET_ALL + Fore.RESET)
 
-    headers.append('assignment_name')
+    headers.append('assignment')
     spacing_formats.append('{: <50}')
     color_formats.append('\033[0;33m' + '{}' + Style.RESET_ALL + Fore.RESET)
 

@@ -72,7 +72,7 @@ def main():
                 columns = row.findAll('td')
 
                 grades[classname]['sections'][current_section]['assignments'].append({
-                    'assignment_name': columns.pop(0).text,
+                    'assignment': columns.pop(0).text,
                     'due': columns.pop(0).text,
                     'assigned': columns.pop(0).text,
                     'multiplier': columns.pop(0).text,
