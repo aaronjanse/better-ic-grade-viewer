@@ -64,9 +64,7 @@ def main():
         print ''
 
         if grade is 'None':
-            print ''
-            print '-' * 6
-            print ''
+            print '\n' * 2
 
             continue
 
@@ -92,9 +90,7 @@ def main():
                 print ''
             print ''
 
-        print ''
-        print '-' * 6
-        print ''
+        print '\n' * 2
 
 
 if __name__ == '__main__':
