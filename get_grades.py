@@ -8,9 +8,7 @@ import config
 from BeautifulSoup import BeautifulSoup
 from xml.dom import minidom
 import utils
-from colorama import Fore, Style
-from colorama import init
-init()
+import json
 
 br = mechanize.Browser()
 
@@ -23,38 +21,7 @@ def main():
 
     print('getting grades...')
 
-    headers = []
-    spacing_formats = []
-    color_formats = []
-
-    headers.append('percent')
-    spacing_formats.append('{: <7}')
-    color_formats.append('\033[0;32m' + '{}' + Style.RESET_ALL + Fore.RESET)
-
-    headers.append('assignment_name')
-    spacing_formats.append('{: <50}')
-    color_formats.append('\033[0;33m' + '{}' + Style.RESET_ALL + Fore.RESET)
-
-    headers.append('multiplier')
-    spacing_formats.append('{: <10}')
-    color_formats.append(
-        Style.DIM + '\033[2;34m' + '{}' + Style.RESET_ALL + Fore.RESET)
-
-    headers.append('pts_possible')
-    spacing_formats.append('{: <12}')
-    color_formats.append(Fore.MAGENTA + '{}' + Style.RESET_ALL + Fore.RESET)
-
-    headers.append('score')
-    spacing_formats.append('{: <5}')
-    color_formats.append(Fore.MAGENTA + '{}' + Style.RESET_ALL + Fore.RESET)
-
-    headers.append('due_date')
-    spacing_formats.append('{: <10}')
-    color_formats.append(Style.DIM + '{}' + Style.RESET_ALL + Fore.RESET)
-
-    headers.append('assigned_date')
-    spacing_formats.append('{: <13}')
-    color_formats.append(Style.DIM + '{}' + Style.RESET_ALL + Fore.RESET)
+    grades = {}
 
     class_links = get_class_links()
     for classname in class_links:
@@ -71,19 +38,17 @@ def main():
         else:
             grade = None
 
-        print '\033[4;36m' + classname + Fore.RESET + Style.RESET_ALL
-        print '\033[2;4;36m' + teacher + Fore.RESET + Style.RESET_ALL
-        print '\033[34m' + str(grade) + Fore.RESET + Style.RESET_ALL
-        print ''
+        grades[classname] = {}
+
+        grades[classname]['teacher'] = teacher
+        grades[classname]['grade'] = str(grade)
+
+        grades[classname]['sections'] = {}
 
         if grade is None:
-            print ''
-            print '-' * 6
-            print ''
-
             continue
 
-        print(' '.join(spacing_formats).format(*headers))
+        current_section = None
 
         rows = soup.findAll(
             ['tr', 'td'], {'class': ['gridCellNormal', 'gridH2Top']})
@@ -97,35 +62,27 @@ def main():
                 else:
                     section_name, weight = text, '100'
 
-                print ('\033[4;31m' + section_name +
-                       Style.RESET_ALL).ljust(20) + ' - ' + weight + '%'
+                grades[classname]['sections'][section_name] = {}
+                grades[classname]['sections'][section_name]['weight'] = weight
+                grades[classname]['sections'][section_name]['assignments'] = []
+                current_section = section_name
                 continue
 
             if row.find('a') is not None:
                 columns = row.findAll('td')
 
-                data_columns = {
+                grades[classname]['sections'][current_section]['assignments'].append({
                     'assignment_name': columns.pop(0).text,
-                    'due_date': columns.pop(0).text,
-                    'assigned_date': columns.pop(0).text,
+                    'due': columns.pop(0).text,
+                    'assigned': columns.pop(0).text,
                     'multiplier': columns.pop(0).text,
-                    'pts_possible': columns.pop(0).text,
+                    'out of': columns.pop(0).text,
                     'score': columns.pop(0).text,
                     'percent': columns.pop(0).text,
-                }
+                })
 
-                data_values = [data_columns[key] for key in headers]
-
-                for value, color_format, spacing_format in zip(data_values,
-                                                               spacing_formats,
-                                                               color_formats):
-                    print spacing_format.format(color_format.format(value)),
-
-                print ''
-
-        print ''
-        print '-' * 6
-        print ''
+    with open('grades_db.json', 'w+') as db:
+        db.write(json.dumps(grades))
 
 
 def get_class_links():
