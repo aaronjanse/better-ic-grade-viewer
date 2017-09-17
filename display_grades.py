@@ -70,7 +70,7 @@ def main():
 
             continue
 
-        print ' '.join(spacing_formats).format(*headers)
+        print Style.BRIGHT + ' '.join(spacing_formats).format(*headers) + Style.RESET_ALL
         print ''
 
         for section_name in class_['sections']:
