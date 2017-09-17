@@ -78,7 +78,7 @@ def main():
                     'multiplier': columns.pop(0).text,
                     'out of': columns.pop(0).text,
                     'score': columns.pop(0).text,
-                    'percent': columns.pop(0).text.replace('&nbsp;', ''),
+                    '%': columns.pop(0).text.replace('&nbsp;', ''),
                 })
 
     with open('grades_db.json', 'w+') as db:

@@ -24,7 +24,7 @@ def main():
     spacing_formats = []
     color_formats = []
 
-    headers.append('percent')
+    headers.append('%')
     spacing_formats.append('{: <7}')
     color_formats.append('\033[0;32m' + '{}' + Style.RESET_ALL + Fore.RESET)
 
