@@ -2,16 +2,15 @@
 
 # based on https://github.com/BenDoan/Infinite-Campus-Grade-Scraper
 
-from colorama import Fore, Back, Style
-from colorama import init
-init()
-
 import cookielib
 import mechanize
 import config
 from BeautifulSoup import BeautifulSoup
 from xml.dom import minidom
 import utils
+from colorama import Fore, Style
+from colorama import init
+init()
 
 br = mechanize.Browser()
 
@@ -19,7 +18,7 @@ br = mechanize.Browser()
 def main():
     print('setting up...')
     setup()
-    print('logging up...')
+    print('logging in...')
     login()
 
     print('getting grades...')
@@ -72,28 +71,38 @@ def main():
         else:
             grade = None
 
-        print classname + ':'
-        print teacher
-        print grade
+        print '\033[4;36m' + classname + Fore.RESET + Style.RESET_ALL
+        print '\033[2;4;36m' + teacher + Fore.RESET + Style.RESET_ALL
+        print '\033[34m' + str(grade) + Fore.RESET + Style.RESET_ALL
         print ''
 
         if grade is None:
+            print ''
+            print '-' * 6
+            print ''
+
             continue
 
         print(' '.join(spacing_formats).format(*headers))
 
-        rows = soup.findAll('tr', {'class': 'gridCellNormal'})
+        rows = soup.findAll(
+            ['tr', 'td'], {'class': ['gridCellNormal', 'gridH2Top']})
         for row in rows:
+            if row.name == 'td':
+                text = row.text
+                text = text.replace('&amp;', '&')
+                text = text.replace('&nbsp;', ' ')
+                if '(weight: ' in text:
+                    section_name, weight = text[:-1].split('(weight: ')
+                else:
+                    section_name, weight = text, '100'
+
+                print ('\033[4;31m' + section_name +
+                       Style.RESET_ALL).ljust(20) + ' - ' + weight + '%'
+                continue
+
             if row.find('a') is not None:
                 columns = row.findAll('td')
-
-                # assignment_name = columns.pop(0).text
-                # due_date = columns.pop(0).text
-                # assigned_date = columns.pop(0).text
-                # multiplier = columns.pop(0).text
-                # pts_possible = columns.pop(0).text
-                # score = columns.pop(0).text
-                # percent = columns.pop(0).text
 
                 data_columns = {
                     'assignment_name': columns.pop(0).text,
@@ -107,17 +116,15 @@ def main():
 
                 data_values = [data_columns[key] for key in headers]
 
-                for value, color_format, spacing_format in zip(data_values, spacing_formats, color_formats):
+                for value, color_format, spacing_format in zip(data_values,
+                                                               spacing_formats,
+                                                               color_formats):
                     print spacing_format.format(color_format.format(value)),
 
                 print ''
 
-                # print format_str.format(*data_values)
-
-                # print(row.text)
-
         print ''
-        print ''
+        print '-' * 6
         print ''
 
 
