@@ -1,6 +1,10 @@
-__pycache__/*
+__pycache__/
 *.pyc
 
 ./config.py
 
 .DS_Store
+
+venv/
+
+.mypy_cache
