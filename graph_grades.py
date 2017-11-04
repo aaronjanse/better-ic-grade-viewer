@@ -8,8 +8,12 @@ from colorama import Fore, Style
 from colorama import init
 init()
 
+graph_spacing = 10
+
 
 def main():
+    last_graph_y = None
+
     with open('grades_db.json', 'r') as db:
         grades = json.loads(db.read())
 
@@ -78,7 +82,21 @@ def main():
 
                 data_values = [data_columns[key] for key in headers]
 
-                c.set(x * 2, 100 - float(data_columns['%']))
+                try:
+                    val = 100 - float(data_columns['%'])
+
+                    if last_graph_y is not None:
+                        diff = last_graph_y - val
+                        for x_ in range((x-1)*graph_spacing, x*graph_spacing):
+                            progress = x_-x*graph_spacing
+                            c.set(x_, val-diff*progress/graph_spacing)
+                            # pass
+
+                    c.set(x * graph_spacing, val)
+
+                    last_graph_y = val
+                except:
+                    pass
                 x += 1
 
                 for value, color_format, spacing_format in zip(data_values,
