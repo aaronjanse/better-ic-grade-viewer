@@ -87,9 +87,9 @@ def main():
 
                     if last_graph_y is not None:
                         diff = last_graph_y - val
-                        for x_ in range((x-1)*graph_spacing, x*graph_spacing):
-                            progress = x_-x*graph_spacing
-                            c.set(x_, val-diff*progress/graph_spacing)
+                        for x_ in range((x - 1) * graph_spacing, x * graph_spacing):
+                            progress = x_ - x * graph_spacing
+                            c.set(x_, val - diff * progress / graph_spacing)
                             # pass
 
                     c.set(x * graph_spacing, val)
