@@ -25,61 +25,58 @@ def main():
 
     class_links = get_class_links()
     for classname in class_links:
-        link = class_links[classname]
-        page = br.open(get_base_url() + link)
-        soup = BeautifulSoup(page)
-        info_boxes = soup.findAll('a', {'class': 'gridNotPartOfTermGPA'})
+        for link in class_links[classname]:
+            page = br.open(get_base_url() + link + '&fromGrades=1')
+            soup = BeautifulSoup(page)
+            info_boxes = soup.findAll('a', {'class': 'gridNotPartOfTermGPA'})
 
-        class_info = info_boxes[-1]
-        teacher = class_info['title'].split('Teacher: ')[1]
+            class_info = info_boxes[-1]
+            teacher = class_info['title'].split('Teacher: ')[1]
 
-        if class_info.find('span') is not None:
-            grade = class_info.find('span').text
-        else:
-            grade = None
-
-        grades[classname] = {}
-
-        grades[classname]['teacher'] = teacher
-        grades[classname]['grade'] = str(grade)
-
-        grades[classname]['sections'] = {}
-
-        if grade is None:
-            continue
-
-        current_section = None
-
-        rows = soup.findAll(
-            ['tr', 'td'], {'class': ['gridCellNormal', 'gridH2Top']})
-        for row in rows:
-            if row.name == 'td':
-                text = row.text
-                text = text.replace('&amp;', '&')
-                text = text.replace('&nbsp;', ' ')
-                if '(weight: ' in text:
-                    section_name, weight = text[:-1].split('(weight: ')
-                else:
-                    section_name, weight = text, '100'
-
-                grades[classname]['sections'][section_name] = {}
-                grades[classname]['sections'][section_name]['weight'] = weight
-                grades[classname]['sections'][section_name]['assignments'] = []
-                current_section = section_name
+            if class_info.find('span') is None:
                 continue
 
-            if row.find('a') is not None:
-                columns = row.findAll('td')
+            grade = class_info.find('span').text
 
-                grades[classname]['sections'][current_section]['assignments'].append({
-                    'assignment': columns.pop(0).text,
-                    'due': columns.pop(0).text,
-                    'assigned': columns.pop(0).text,
-                    'multiplier': columns.pop(0).text,
-                    'out of': columns.pop(0).text,
-                    'score': columns.pop(0).text,
-                    '%': columns.pop(0).text.replace('&nbsp;', ''),
-                })
+            grades[classname] = {}
+
+            grades[classname]['teacher'] = teacher
+            grades[classname]['grade'] = str(grade)
+
+            grades[classname]['sections'] = {}
+
+            current_section = None
+
+            rows = soup.findAll(
+                ['tr', 'td'], {'class': ['gridCellNormal', 'gridH2Top']})
+            for row in rows:
+                if row.name == 'td':
+                    text = row.text
+                    text = text.replace('&amp;', '&')
+                    text = text.replace('&nbsp;', ' ')
+                    if '(weight: ' in text:
+                        section_name, weight = text[:-1].split('(weight: ')
+                    else:
+                        section_name, weight = text, '100'
+
+                    grades[classname]['sections'][section_name] = {}
+                    grades[classname]['sections'][section_name]['weight'] = weight
+                    grades[classname]['sections'][section_name]['assignments'] = []
+                    current_section = section_name
+                    continue
+
+                if row.find('a') is not None:
+                    columns = row.findAll('td')
+
+                    grades[classname]['sections'][current_section]['assignments'].append({
+                        'assignment': columns.pop(0).text,
+                        'due': columns.pop(0).text,
+                        'assigned': columns.pop(0).text,
+                        'multiplier': columns.pop(0).text,
+                        'out of': columns.pop(0).text,
+                        'score': columns.pop(0).text,
+                        '%': columns.pop(0).text.replace('&nbsp;', ''),
+                    })
 
     with open('grades_db.json', 'w+') as db:
         db.write(json.dumps(grades))
@@ -95,7 +92,8 @@ def get_class_links():
             link = cell.find('a')
             if link is not None:
                 classname = ' '.join(link.find('b').text.split(' ')[1:])
-                output[classname] = link['href']
+                output[classname] = output[classname] if classname in output else []
+                output[classname].append(link['href'])
 
     return output
 
