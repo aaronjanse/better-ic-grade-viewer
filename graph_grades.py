@@ -3,12 +3,14 @@
 # based on https://github.com/BenDoan/Infinite-Campus-Grade-Scraper
 
 import json
+import os
 from drawille import Canvas
 from colorama import Fore, Style
 from colorama import init
 init()
 
-graph_spacing = 10
+_, terminal_columns = os.popen('stty size', 'r').read().split()
+terminal_columns = int(terminal_columns)-1
 
 
 def main():
@@ -76,6 +78,7 @@ def main():
 
             print ('\033[4;31m' + section_name +
                    Style.RESET_ALL).ljust(60) + ' - ' + section['weight'] + '%'
+            graph_spacing = int(terminal_columns/len(section['assignments']))*2
 
             for assignment in section['assignments']:
                 data_columns = assignment
